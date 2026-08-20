@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>트레이너 전체 목록</title></head>
+<body>
+    <h1>전체 트레이너 목록</h1>
+    <ul>
+        <li th:each="trainer : ${trainers}">
+            <span th:text="${trainer.id}"></span> -
+            <span th:text="${trainer.name}"></span> -
+            <span th:text="${trainer.region}"></span>
+        </li>
+    </ul>
+</body>
+</html>
