@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>포켓몬 도감 API 데모</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --bg:#f0f4ea; --surface:#ffffff; --surface-2:#e4ebdc; --text:#1d2420; --muted:#5c6b58;
+    --border:#d2dec6; --accent:#d63a31; --accent-strong:#ad2921; --accent-soft:#fbe2df;
+    --ok:#1f8064; --warn:#b3821f; --code-bg:#141c16; --code-text:#e4efdd;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Malgun Gothic",sans-serif;
+    line-height:1.55; padding:2rem 1.25rem 4rem;
+  }
+  .wrap{ max-width:920px; margin:0 auto; }
+  header{ margin-bottom:1.8rem; }
+  header h1{ font-size:1.5rem; margin:0 0 .3rem; }
+  header p{ margin:0; color:var(--muted); font-size:.92rem; }
+  .badge{
+    display:inline-block; font-size:.7rem; font-weight:700; letter-spacing:.04em;
+    background:var(--accent-soft); color:var(--accent-strong); padding:.15rem .55rem;
+    border-radius:999px; margin-bottom:.6rem;
+  }
+
+  .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1rem; margin-bottom:1.4rem; }
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:1.1rem 1.2rem 1.25rem; box-shadow:0 1px 2px rgba(0,0,0,.04), 0 8px 20px -14px rgba(0,0,0,.25);
+  }
+  .card h2{ font-size:.95rem; margin:0 0 .15rem; display:flex; align-items:center; gap:.5rem; }
+  .method{
+    font-family:'SFMono-Regular',Consolas,monospace; font-size:.68rem; font-weight:700;
+    padding:.1rem .4rem; border-radius:5px; color:#fff;
+  }
+  .m-get{ background:var(--ok); } .m-post{ background:var(--accent); }
+  .m-patch{ background:var(--warn); } .m-delete{ background:#7a5a9e; }
+  .card .path{ font-family:'SFMono-Regular',Consolas,monospace; font-size:.76rem; color:var(--muted); margin-bottom:.7rem; display:block; }
+
+  .field{ margin-bottom:.55rem; }
+  .field label{ display:block; font-size:.72rem; color:var(--muted); margin-bottom:.2rem; }
+  .field input{
+    width:100%; padding:.4rem .55rem; border:1px solid var(--border); border-radius:8px;
+    font-size:.86rem; background:var(--surface); color:var(--text); font-family:inherit;
+  }
+  .field input:focus{ outline:2px solid var(--accent-soft); border-color:var(--accent); }
+
+  button.run{
+    margin-top:.4rem; width:100%; padding:.55rem .8rem; border:none; border-radius:9px;
+    background:var(--accent); color:#fff; font-weight:600; font-size:.86rem; cursor:pointer;
+    transition:filter .12s;
+  }
+  button.run:hover{ filter:brightness(1.06); }
+  button.run:active{ filter:brightness(.94); }
+  button.run.secondary{ background:var(--surface-2); color:var(--text); border:1px solid var(--border); }
+
+  .last-id{
+    font-size:.78rem; color:var(--muted); margin-top:.5rem; padding-top:.5rem;
+    border-top:1px dashed var(--border);
+  }
+  .last-id b{ color:var(--accent-strong); font-family:'SFMono-Regular',Consolas,monospace; }
+
+  .result-panel{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:1rem 1.1rem 1.2rem; box-shadow:0 1px 2px rgba(0,0,0,.04);
+  }
+  .result-status{
+    display:flex; align-items:center; gap:.6rem; font-family:'SFMono-Regular',Consolas,monospace;
+    font-size:.82rem; margin-bottom:.7rem; flex-wrap:wrap;
+  }
+  .result-status .code{
+    font-weight:700; padding:.1rem .5rem; border-radius:6px; color:#fff;
+  }
+  .code-2xx{ background:var(--ok); } .code-4xx{ background:var(--warn); } .code-5xx{ background:var(--accent); }
+  .code-pending{ background:var(--muted); }
+  iframe{
+    width:100%; height:260px; border:1px solid var(--border); border-radius:10px; background:#fff;
+  }
+  .empty-hint{ color:var(--muted); font-size:.85rem; padding:2.2rem 0; text-align:center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="badge">DEMO · 클릭으로 확인</span>
+    <h1>포켓몬 도감 API 데모</h1>
+    <p>Postman 없이, 버튼만 눌러서 Controller → Service → Repository 결과를 바로 확인합니다. 서버가
+      <code>localhost:8080</code>에서 실행 중이어야 동작합니다.</p>
+  </header>
+
+  <div class="grid">
+
+    <div class="card">
+      <h2><span class="method m-post">POST</span> 등록</h2>
+      <span class="path">/v1/pokemons</span>
+      <div class="field"><label>name</label><input id="reg-name" value="피카츄"></div>
+      <div class="field"><label>type</label><input id="reg-type" value="electric"></div>
+      <div class="field"><label>level</label><input id="reg-level" value="5" inputmode="numeric"></div>
+      <button class="run" onclick="registerPokemon()">등록하기</button>
+      <div class="last-id">마지막 등록 ID: <b id="last-id-view">-</b></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="method m-get">GET</span> 단건 조회</h2>
+      <span class="path">/v1/pokemons/{pokemon-id}</span>
+      <div class="field"><label>pokemon-id</label><input id="get-id" value="1"></div>
+      <button class="run" onclick="getPokemon()">조회하기</button>
+    </div>
+
+    <div class="card">
+      <h2><span class="method m-get">GET</span> 목록 조회</h2>
+      <span class="path">/v1/pokemons?type=</span>
+      <div class="field"><label>type (비워두면 전체)</label><input id="list-type" value=""></div>
+      <button class="run" onclick="listPokemons()">목록 보기</button>
+    </div>
+
+    <div class="card">
+      <h2><span class="method m-patch">PATCH</span> 수정</h2>
+      <span class="path">/v1/pokemons/{pokemon-id}</span>
+      <div class="field"><label>pokemon-id</label><input id="patch-id" value="1"></div>
+      <div class="field"><label>type</label><input id="patch-type" value="electric"></div>
+      <div class="field"><label>level</label><input id="patch-level" value="10" inputmode="numeric"></div>
+      <button class="run" onclick="patchPokemon()">수정하기</button>
+    </div>
+
+    <div class="card">
+      <h2><span class="method m-delete">DELETE</span> 삭제</h2>
+      <span class="path">/v1/pokemons/{pokemon-id}</span>
+      <div class="field"><label>pokemon-id</label><input id="delete-id" value="1"></div>
+      <button class="run" onclick="deletePokemon()">삭제하기</button>
+    </div>
+
+    <div class="card">
+      <h2><span class="method m-patch">⚠</span> 검증 실패 데모</h2>
+      <span class="path">level=150 로 PATCH 호출</span>
+      <div class="field"><label>pokemon-id</label><input id="fail-id" value="1"></div>
+      <button class="run secondary" onclick="triggerValidationFailure()">일부러 실패시키기</button>
+    </div>
+
+  </div>
+
+  <div class="result-panel">
+    <div class="result-status" id="status-line">
+      <span class="code code-pending">READY</span>
+      <span>버튼을 누르면 여기에 실제 요청/응답이 표시됩니다.</span>
+    </div>
+    <iframe id="result-frame" srcdoc="&lt;p style=&quot;font-family:sans-serif;color:#999;text-align:center;padding-top:100px;&quot;&gt;결과 없음&lt;/p&gt;"></iframe>
+  </div>
+</div>
+
+<script>
+let lastId = null;
+
+function setStatus(method, path, status) {
+  const line = document.getElementById('status-line');
+  const codeClass = status < 300 ? 'code-2xx' : (status < 500 ? 'code-4xx' : 'code-5xx');
+  line.innerHTML =
+    '<span class="code ' + codeClass + '">' + status + '</span>' +
+    '<span>' + method + ' ' + path + '</span>';
+}
+
+function showHtml(html) {
+  document.getElementById('result-frame').srcdoc = html;
+}
+
+function extractFirstSpanText(html) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const span = doc.querySelector('span');
+  return span ? span.textContent.trim() : null;
+}
+
+async function call(method, path, params) {
+  let url = path;
+  let opts = { method };
+  if (method === 'GET') {
+    const qs = new URLSearchParams(params).toString();
+    if (qs) url += '?' + qs;
+  } else {
+    opts.headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+    opts.body = new URLSearchParams(params).toString();
+  }
+  let res, text;
+  try {
+    res = await fetch(url, opts);
+    text = await res.text();
+  } catch (e) {
+    setStatus(method, path, 0);
+    showHtml('<p style="font-family:sans-serif;color:#d63a31;padding:2rem;">서버에 연결할 수 없습니다. 앱이 실행 중인지 확인하세요.<br>' + e + '</p>');
+    return null;
+  }
+  setStatus(method, path, res.status);
+  showHtml(text);
+  return { status: res.status, html: text };
+}
+
+async function registerPokemon() {
+  const params = {
+    name: document.getElementById('reg-name').value,
+    type: document.getElementById('reg-type').value,
+    level: document.getElementById('reg-level').value
+  };
+  const result = await call('POST', '/v1/pokemons', params);
+  if (result && result.status < 300) {
+    const id = extractFirstSpanText(result.html);
+    if (id) {
+      lastId = id;
+      document.getElementById('last-id-view').textContent = id;
+      ['get-id', 'patch-id', 'delete-id', 'fail-id'].forEach(elId => {
+        document.getElementById(elId).value = id;
+      });
+    }
+  }
+}
+
+function getPokemon() {
+  const id = document.getElementById('get-id').value;
+  call('GET', '/v1/pokemons/' + encodeURIComponent(id), {});
+}
+
+function listPokemons() {
+  const type = document.getElementById('list-type').value;
+  call('GET', '/v1/pokemons', type ? { type } : {});
+}
+
+function patchPokemon() {
+  const id = document.getElementById('patch-id').value;
+  const params = {
+    type: document.getElementById('patch-type').value,
+    level: document.getElementById('patch-level').value
+  };
+  call('PATCH', '/v1/pokemons/' + encodeURIComponent(id), params);
+}
+
+function deletePokemon() {
+  const id = document.getElementById('delete-id').value;
+  call('DELETE', '/v1/pokemons/' + encodeURIComponent(id), {});
+}
+
+function triggerValidationFailure() {
+  const id = document.getElementById('fail-id').value;
+  call('PATCH', '/v1/pokemons/' + encodeURIComponent(id), { type: 'electric', level: '150' });
+}
+</script>
+</body>
+</html>
