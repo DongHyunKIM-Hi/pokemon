@@ -1,4 +1,4 @@
-package com.example.pokemon.common;
+package com.example.pokemon.common.dto;
 
 public class ApiError {
 

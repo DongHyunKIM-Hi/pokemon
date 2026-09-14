@@ -1,10 +1,13 @@
-package com.example.pokemon.dex.dto;
+package com.example.pokemon.dex.model.dto;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 
-public class UpdatePokemonRequest {
+public class CreatePokemonRequest {
+
+    @NotBlank(message = "이름은 필수입니다")
+    private String name;
 
     @NotBlank(message = "타입은 필수입니다")
     private String type;
@@ -12,6 +15,10 @@ public class UpdatePokemonRequest {
     @Min(value = 1, message = "레벨은 1 이상이어야 합니다")
     @Max(value = 100, message = "레벨은 100을 넘을 수 없습니다")
     private int level;
+
+    public String getName() {
+        return name;
+    }
 
     public String getType() {
         return type;

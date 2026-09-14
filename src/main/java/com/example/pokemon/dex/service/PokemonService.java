@@ -1,5 +1,8 @@
-package com.example.pokemon.dex;
+package com.example.pokemon.dex.service;
 
+import com.example.pokemon.common.exception.PokemonNotFoundException;
+import com.example.pokemon.dex.model.entity.Pokemon;
+import com.example.pokemon.dex.repository.PokemonRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

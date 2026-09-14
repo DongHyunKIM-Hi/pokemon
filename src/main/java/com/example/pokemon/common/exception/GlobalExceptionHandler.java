@@ -1,6 +1,7 @@
-package com.example.pokemon.common;
+package com.example.pokemon.common.exception;
 
-import com.example.pokemon.dex.PokemonNotFoundException;
+import com.example.pokemon.common.dto.ApiError;
+import com.example.pokemon.common.dto.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;

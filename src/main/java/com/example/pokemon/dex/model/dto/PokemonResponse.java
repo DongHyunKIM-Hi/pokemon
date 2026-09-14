@@ -1,6 +1,6 @@
-package com.example.pokemon.dex.dto;
+package com.example.pokemon.dex.model.dto;
 
-import com.example.pokemon.dex.Pokemon;
+import com.example.pokemon.dex.model.entity.Pokemon;
 
 public class PokemonResponse {
 

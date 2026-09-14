@@ -1,4 +1,4 @@
-package com.example.pokemon.dex;
+package com.example.pokemon.dex.model.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

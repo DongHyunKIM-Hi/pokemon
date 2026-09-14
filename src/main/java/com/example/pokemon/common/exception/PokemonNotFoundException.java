@@ -1,4 +1,4 @@
-package com.example.pokemon.dex;
+package com.example.pokemon.common.exception;
 
 public class PokemonNotFoundException extends RuntimeException {
 

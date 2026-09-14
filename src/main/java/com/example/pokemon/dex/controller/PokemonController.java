@@ -1,9 +1,11 @@
-package com.example.pokemon.dex;
+package com.example.pokemon.dex.controller;
 
-import com.example.pokemon.common.ApiResponse;
-import com.example.pokemon.dex.dto.CreatePokemonRequest;
-import com.example.pokemon.dex.dto.PokemonResponse;
-import com.example.pokemon.dex.dto.UpdatePokemonRequest;
+import com.example.pokemon.common.dto.ApiResponse;
+import com.example.pokemon.dex.model.entity.Pokemon;
+import com.example.pokemon.dex.service.PokemonService;
+import com.example.pokemon.dex.model.dto.CreatePokemonRequest;
+import com.example.pokemon.dex.model.dto.PokemonResponse;
+import com.example.pokemon.dex.model.dto.UpdatePokemonRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

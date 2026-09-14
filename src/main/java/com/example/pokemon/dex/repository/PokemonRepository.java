@@ -1,5 +1,6 @@
-package com.example.pokemon.dex;
+package com.example.pokemon.dex.repository;
 
+import com.example.pokemon.dex.model.entity.Pokemon;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
