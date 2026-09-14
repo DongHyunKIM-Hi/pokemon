@@ -1,0 +1,65 @@
+= Pokemon API 문서
+:doctype: book
+:toc: left
+:toclevels: 2
+:sectlinks:
+
+== 포켓몬 등록
+
+=== 요청
+
+include::{snippets}/pokemon-create/http-request.adoc[]
+include::{snippets}/pokemon-create/request-fields.adoc[]
+
+=== 응답
+
+include::{snippets}/pokemon-create/http-response.adoc[]
+include::{snippets}/pokemon-create/response-fields.adoc[]
+
+== 포켓몬 단건 조회
+
+=== 요청
+
+include::{snippets}/pokemon-get/http-request.adoc[]
+include::{snippets}/pokemon-get/path-parameters.adoc[]
+
+=== 응답
+
+include::{snippets}/pokemon-get/http-response.adoc[]
+include::{snippets}/pokemon-get/response-fields.adoc[]
+
+== 포켓몬 목록 조회
+
+=== 요청
+
+include::{snippets}/pokemon-list/http-request.adoc[]
+include::{snippets}/pokemon-list/query-parameters.adoc[]
+
+=== 응답
+
+include::{snippets}/pokemon-list/http-response.adoc[]
+include::{snippets}/pokemon-list/response-fields.adoc[]
+
+== 포켓몬 수정
+
+=== 요청
+
+include::{snippets}/pokemon-update/http-request.adoc[]
+include::{snippets}/pokemon-update/path-parameters.adoc[]
+include::{snippets}/pokemon-update/request-fields.adoc[]
+
+=== 응답
+
+include::{snippets}/pokemon-update/http-response.adoc[]
+include::{snippets}/pokemon-update/response-fields.adoc[]
+
+== 포켓몬 삭제
+
+=== 요청
+
+include::{snippets}/pokemon-delete/http-request.adoc[]
+include::{snippets}/pokemon-delete/path-parameters.adoc[]
+
+=== 응답
+
+include::{snippets}/pokemon-delete/http-response.adoc[]
