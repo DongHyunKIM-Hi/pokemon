@@ -1,12 +1,18 @@
 package com.example.pokemon.dex;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import com.example.pokemon.common.ApiResponse;
+import com.example.pokemon.dex.dto.CreatePokemonRequest;
+import com.example.pokemon.dex.dto.PokemonResponse;
+import com.example.pokemon.dex.dto.UpdatePokemonRequest;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-@Controller
+@RestController
 @RequestMapping("/v1/pokemons")
 public class PokemonController {
 
@@ -17,45 +23,49 @@ public class PokemonController {
     }
 
     @PostMapping
-    public String postPokemon(@RequestParam("name") String name,
-                               @RequestParam("type") String type,
-                               @RequestParam("level") int level,
-                               Model model) {
-        Pokemon pokemon = pokemonService.registerPokemon(name, type, level);
-        model.addAttribute("pokemon", pokemon);
-        return "pokemonResult";
+    public ResponseEntity<ApiResponse<PokemonResponse>> createPokemon(
+            @Valid @RequestBody CreatePokemonRequest request) {
+
+        Pokemon pokemon = pokemonService.registerPokemon(
+                request.getName(), request.getType(), request.getLevel());
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(PokemonResponse.from(pokemon)));
     }
 
     @GetMapping("/{pokemon-id}")
-    public String getPokemon(@PathVariable("pokemon-id") long pokemonId, Model model) {
+    public ResponseEntity<ApiResponse<PokemonResponse>> getPokemon(
+            @PathVariable("pokemon-id") long pokemonId) {
+
         Pokemon pokemon = pokemonService.getPokemon(pokemonId);
-        model.addAttribute("pokemon", pokemon);
-        return "pokemonDetail";
+        return ResponseEntity.ok(ApiResponse.success(PokemonResponse.from(pokemon)));
     }
 
     @GetMapping
-    public String getPokemons(@RequestParam(value = "type", required = false, defaultValue = "전체") String type,
-                               Model model) {
-        List<Pokemon> pokemons = pokemonService.getPokemons(type);
-        model.addAttribute("pokemons", pokemons);
-        model.addAttribute("type", type);
-        return "pokemonList";
+    public ResponseEntity<ApiResponse<List<PokemonResponse>>> getPokemons(
+            @RequestParam(value = "type", required = false) String type) {
+
+        List<PokemonResponse> pokemons = pokemonService.getPokemons(type).stream()
+                .map(PokemonResponse::from)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(ApiResponse.success(pokemons));
     }
 
     @PatchMapping("/{pokemon-id}")
-    public String patchPokemon(@PathVariable("pokemon-id") long pokemonId,
-                                @RequestParam("type") String type,
-                                @RequestParam("level") int level,
-                                Model model) {
-        Pokemon pokemon = pokemonService.updatePokemon(pokemonId, type, level);
-        model.addAttribute("pokemon", pokemon);
-        return "pokemonUpdateResult";
+    public ResponseEntity<ApiResponse<PokemonResponse>> updatePokemon(
+            @PathVariable("pokemon-id") long pokemonId,
+            @Valid @RequestBody UpdatePokemonRequest request) {
+
+        Pokemon pokemon = pokemonService.updatePokemon(
+                pokemonId, request.getType(), request.getLevel());
+
+        return ResponseEntity.ok(ApiResponse.success(PokemonResponse.from(pokemon)));
     }
 
     @DeleteMapping("/{pokemon-id}")
-    public String deletePokemon(@PathVariable("pokemon-id") long pokemonId, Model model) {
+    public ResponseEntity<Void> deletePokemon(@PathVariable("pokemon-id") long pokemonId) {
         pokemonService.deletePokemon(pokemonId);
-        model.addAttribute("pokemonId", pokemonId);
-        return "pokemonDeleteResult";
+        return ResponseEntity.noContent().build();
     }
 }

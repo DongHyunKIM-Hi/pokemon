@@ -76,8 +76,10 @@
   }
   .code-2xx{ background:var(--ok); } .code-4xx{ background:var(--warn); } .code-5xx{ background:var(--accent); }
   .code-pending{ background:var(--muted); }
-  iframe{
-    width:100%; height:260px; border:1px solid var(--border); border-radius:10px; background:#fff;
+  pre.result-body{
+    width:100%; min-height:220px; margin:0; border:1px solid var(--border); border-radius:10px;
+    background:var(--code-bg); color:var(--code-text); padding:1rem 1.1rem; overflow:auto;
+    font-family:'SFMono-Regular',Consolas,monospace; font-size:.8rem; white-space:pre-wrap; word-break:break-word;
   }
   .empty-hint{ color:var(--muted); font-size:.85rem; padding:2.2rem 0; text-align:center; }
 </style>
@@ -87,7 +89,7 @@
   <header>
     <span class="badge">DEMO · 클릭으로 확인</span>
     <h1>포켓몬 도감 API 데모</h1>
-    <p>Postman 없이, 버튼만 눌러서 Controller → Service → Repository 결과를 바로 확인합니다. 서버가
+    <p>Postman 없이, 버튼만 눌러서 Controller → Service → Repository 결과를 <code>ApiResponse</code> JSON 그대로 확인합니다. 서버가
       <code>localhost:8080</code>에서 실행 중이어야 동작합니다.</p>
   </header>
 
@@ -147,7 +149,7 @@
       <span class="code code-pending">READY</span>
       <span>버튼을 누르면 여기에 실제 요청/응답이 표시됩니다.</span>
     </div>
-    <iframe id="result-frame" srcdoc="&lt;p style=&quot;font-family:sans-serif;color:#999;text-align:center;padding-top:100px;&quot;&gt;결과 없음&lt;/p&gt;"></iframe>
+    <pre class="result-body" id="result-body">결과 없음</pre>
   </div>
 </div>
 
@@ -162,25 +164,25 @@ function setStatus(method, path, status) {
     '<span>' + method + ' ' + path + '</span>';
 }
 
-function showHtml(html) {
-  document.getElementById('result-frame').srcdoc = html;
+function showJson(text) {
+  const body = document.getElementById('result-body');
+  try {
+    body.textContent = JSON.stringify(JSON.parse(text), null, 2);
+  } catch (e) {
+    body.textContent = text || '(본문 없음)';
+  }
 }
 
-function extractFirstSpanText(html) {
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  const span = doc.querySelector('span');
-  return span ? span.textContent.trim() : null;
-}
-
-async function call(method, path, params) {
+async function call(method, path, query, jsonBody) {
   let url = path;
-  let opts = { method };
-  if (method === 'GET') {
-    const qs = new URLSearchParams(params).toString();
+  const opts = { method, headers: {} };
+  if (query) {
+    const qs = new URLSearchParams(query).toString();
     if (qs) url += '?' + qs;
-  } else {
-    opts.headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
-    opts.body = new URLSearchParams(params).toString();
+  }
+  if (jsonBody) {
+    opts.headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(jsonBody);
   }
   let res, text;
   try {
@@ -188,60 +190,58 @@ async function call(method, path, params) {
     text = await res.text();
   } catch (e) {
     setStatus(method, path, 0);
-    showHtml('<p style="font-family:sans-serif;color:#d63a31;padding:2rem;">서버에 연결할 수 없습니다. 앱이 실행 중인지 확인하세요.<br>' + e + '</p>');
+    showJson('서버에 연결할 수 없습니다. 앱이 실행 중인지 확인하세요.\n' + e);
     return null;
   }
   setStatus(method, path, res.status);
-  showHtml(text);
-  return { status: res.status, html: text };
+  showJson(text);
+  return { status: res.status, text };
 }
 
 async function registerPokemon() {
-  const params = {
+  const body = {
     name: document.getElementById('reg-name').value,
     type: document.getElementById('reg-type').value,
-    level: document.getElementById('reg-level').value
+    level: Number(document.getElementById('reg-level').value)
   };
-  const result = await call('POST', '/v1/pokemons', params);
+  const result = await call('POST', '/v1/pokemons', null, body);
   if (result && result.status < 300) {
-    const id = extractFirstSpanText(result.html);
-    if (id) {
-      lastId = id;
-      document.getElementById('last-id-view').textContent = id;
-      ['get-id', 'patch-id', 'delete-id', 'fail-id'].forEach(elId => {
-        document.getElementById(elId).value = id;
-      });
-    }
+    const id = JSON.parse(result.text).data.id;
+    lastId = id;
+    document.getElementById('last-id-view').textContent = id;
+    ['get-id', 'patch-id', 'delete-id', 'fail-id'].forEach(elId => {
+      document.getElementById(elId).value = id;
+    });
   }
 }
 
 function getPokemon() {
   const id = document.getElementById('get-id').value;
-  call('GET', '/v1/pokemons/' + encodeURIComponent(id), {});
+  call('GET', '/v1/pokemons/' + encodeURIComponent(id));
 }
 
 function listPokemons() {
   const type = document.getElementById('list-type').value;
-  call('GET', '/v1/pokemons', type ? { type } : {});
+  call('GET', '/v1/pokemons', type ? { type } : null);
 }
 
 function patchPokemon() {
   const id = document.getElementById('patch-id').value;
-  const params = {
+  const body = {
     type: document.getElementById('patch-type').value,
-    level: document.getElementById('patch-level').value
+    level: Number(document.getElementById('patch-level').value)
   };
-  call('PATCH', '/v1/pokemons/' + encodeURIComponent(id), params);
+  call('PATCH', '/v1/pokemons/' + encodeURIComponent(id), null, body);
 }
 
 function deletePokemon() {
   const id = document.getElementById('delete-id').value;
-  call('DELETE', '/v1/pokemons/' + encodeURIComponent(id), {});
+  call('DELETE', '/v1/pokemons/' + encodeURIComponent(id));
 }
 
 function triggerValidationFailure() {
   const id = document.getElementById('fail-id').value;
-  call('PATCH', '/v1/pokemons/' + encodeURIComponent(id), { type: 'electric', level: '150' });
+  call('PATCH', '/v1/pokemons/' + encodeURIComponent(id), null, { type: 'electric', level: 150 });
 }
 </script>
 </body>
