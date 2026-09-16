@@ -6,11 +6,8 @@ import jakarta.validation.constraints.NotBlank;
 
 public class UpdatePokemonRequest {
 
-    @NotBlank(message = "타입은 필수입니다")
     private String type;
 
-    @Min(value = 1, message = "레벨은 1 이상이어야 합니다")
-    @Max(value = 100, message = "레벨은 100을 넘을 수 없습니다")
     private int level;
 
     public String getType() {

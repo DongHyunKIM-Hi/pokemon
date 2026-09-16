@@ -32,10 +32,37 @@ public class PokemonRepository {
 
     public Pokemon update(long id, String type, int level) {
         Pokemon existing = store.get(id);
+
         if (existing == null) {
             return null;
         }
-        Pokemon updated = new Pokemon(id, existing.getName(), type, level);
+
+        String updateType;
+        int updateLevel;
+
+        // type 외부에서 받아온 값 -> 업데이트하려고하는 type
+        // 값이 있는지 없는지 검사
+        // 값이 있다. -> 타입을 변경하고 싶어함.
+        // 값이 없다. -> 타입을 변경하고 싶어하지 않음.
+
+        if (type == null) {
+            // 값을 변경하고 싶어하지 않음.
+            updateType = existing.getType();
+        } else {
+            // 값이 존재해 변경하고 싶은 것임
+            updateType = type;
+        }
+
+        if (level == 0) {
+            updateLevel = existing.getLevel();
+        } else {
+            updateLevel = level;
+        }
+
+
+
+
+        Pokemon updated = new Pokemon(id, existing.getName(), updateType, updateLevel);
         store.put(id, updated);
         return updated;
     }
